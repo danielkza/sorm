@@ -15,7 +15,7 @@ class EntityMapping
   extends MasterTableMapping {
 
   lazy val properties
-    = reflection.properties.map{case (n, r) => n -> Mapping(r, Membership.EntityProperty(n, this), settings)}
+    = reflection.primaryConstructorArguments.toMap.map{case (n, r) => n -> Mapping(r, Membership.EntityProperty(n, this), settings)}
   lazy val mappings // todo: add id
     = properties.values.toStream
   lazy val primaryKeyColumns
