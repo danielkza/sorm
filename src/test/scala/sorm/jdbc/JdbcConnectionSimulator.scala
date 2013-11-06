@@ -18,11 +18,11 @@ class JdbcConnectionSimulator
       }
 
     override def executeUpdateAndGetGeneratedKeys
-      ( stmt : Statement )
-      : List[IndexedSeq[Any]] 
+      ( stmt : Statement, keys: Iterable[String] )
+      : Traversable[Seq[(String, Any)]]
       = {
         println(stmt.toString)
-        List(Vector(777l))
+        Seq(keys.map{ _ -> 7771 }.toSeq)
       }
 
     override def executeUpdate

@@ -43,6 +43,21 @@ class ResultSetView
               }
             }
         }
+
+    def partialByNameRowsTraversable( keys: Iterable[String] )
+    = new Traversable[Seq[(String, Any)]] {
+      def foreach
+      [ U ]
+      ( f : (Seq[(String, Any)]) => U )
+      {
+        val keyList = keys.toList
+        while( rs.next() ){
+          keyList.map{ key =>
+            key -> indexTypeByName.get(key).map{ case (i, t) ⇒ value(i, t) }.orNull
+          } $ f
+        }
+      }
+    }
     /**
      * @see <a href=http://docstore.mik.ua/orelly/java-ent/servlet/ch09_02.htm#ch09-22421>jdbc table
      */
