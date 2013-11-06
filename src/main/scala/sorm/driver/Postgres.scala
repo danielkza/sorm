@@ -45,6 +45,6 @@ class Postgres (protected val connection : JdbcConnection)
       }
     }
   //  dirty: implies that the only thing returned is an id column
-  override def insertAndGetGeneratedKeys(table: String, values: Iterable[(String, Any)])
-    = super.insertAndGetGeneratedKeys(table, values).take(1)
+  override def insertAndGetGeneratedKeys(table: String, values: Iterable[(String, Any)], keys: Iterable[String])
+    = super.insertAndGetGeneratedKeys(table, values, keys).take(1)
 }
