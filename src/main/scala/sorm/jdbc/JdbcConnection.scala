@@ -23,27 +23,29 @@ class JdbcConnection( protected val connection : Connection ) extends Transactio
     }
 
   def executeUpdateAndGetGeneratedKeys
-    ( s : Statement )
-    : List[IndexedSeq[Any]]
+    ( s : Statement, keys: Iterable[String] )
+    : Traversable[Seq[(String, Any)]]
     = {
       logStatement(s)
-      if( s.data.isEmpty ) {
-        val js = connection.createStatement()
-        executeLoggingBenchmark(js.executeUpdate(s.sql, JdbcStatement.RETURN_GENERATED_KEYS))
-        val rs = js.getGeneratedKeys
-        val r = rs.indexedRowsTraversable.toList
-        rs.close()
-        js.close()
-        r
-      } else {
-        val js = preparedStatement(s, true)
-        executeLoggingBenchmark(js.executeUpdate())
-        val rs = js.getGeneratedKeys
-        val r = rs.indexedRowsTraversable.toList
-        rs.close()
-        js.close()
-        r
+
+      val js = {
+        if( s.data.isEmpty ) {
+          val js = connection.createStatement()
+          executeLoggingBenchmark(js.executeUpdate(s.sql, JdbcStatement.RETURN_GENERATED_KEYS))
+          js
+        } else {
+          val js = preparedStatement(s, true)
+          executeLoggingBenchmark(js.executeUpdate())
+          js
+        }
       }
+
+      val keyList = keys.toList
+      val rs = js.getGeneratedKeys
+      val r = rs.partialByNameRowsTraversable(keys).toList
+      rs.close()
+      js.close()
+      r
     }
 
   def executeUpdate

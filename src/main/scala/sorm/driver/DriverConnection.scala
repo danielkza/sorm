@@ -32,8 +32,8 @@ trait DriverConnection {
   def insert
     ( table : String, values : Iterable[(String, Any)] )
   def insertAndGetGeneratedKeys
-    ( table : String, values : Iterable[(String, Any)] )
-    : Seq[Any]
+    ( table : String, values : Iterable[(String, Any)], keys: Iterable[String] )
+    : Seq[(String, Any)]
   def delete
     ( table : String, pk : Iterable[(String, Any)] )
   def transaction [ T ] ( f : => T ) : T
