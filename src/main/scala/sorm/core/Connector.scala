@@ -26,5 +26,8 @@ class Connector (url: String, user: String, password: String, poolSize: Int) {
   def withConnection [ T ] ( f : DriverConnection => T ) : T
     = pool.withConnection( _ $ driverConnection $ f )
 
+  def withJdbcConnection [ T ] ( f : JdbcConnection => T ) : T
+    = pool.withConnection( f )
+
   def close() = pool.close()
 }
