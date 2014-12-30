@@ -1,7 +1,7 @@
 package sorm.test.types
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -11,7 +11,7 @@ import samples._
 import sorm.test.MultiInstanceSuite
 
 @RunWith(classOf[JUnitRunner])
-class SeqOfEnumsSupportSuite extends FunSuite with ShouldMatchers with MultiInstanceSuite {
+class SeqOfEnumsSupportSuite extends FunSuite with Matchers with MultiInstanceSuite {
   import SeqOfEnumsSupportSuite._
 
   def entities =  Set() + Entity[A]()
@@ -39,27 +39,25 @@ class SeqOfEnumsSupportSuite extends FunSuite with ShouldMatchers with MultiInst
     test(dbId + " - Not equals empty Seq query"){
       db.query[A].whereNotEqual("a", Seq()).fetch()
         .should(
-          not be 'empty and
+          not be empty and
           not contain (a5)
         )
     }
     test(dbId + " - Not equals query"){
       db.query[A].whereNotEqual("a", Seq(B.Three)).fetch()
         .should(
-          not be 'empty and
+          not be empty and
           not contain (a3)
         )
     }
     test(dbId + " - Equal inexistent Seq query"){
       db.query[A].whereEqual("a", Seq(B.Three, B.Three)).fetch()
-        .should(
-          be ('empty)
-        )
+        .shouldBe(empty)
     }
     test(dbId + " - Not equals inexistent Seq query"){
       db.query[A].whereNotEqual("a", Seq(B.Three, B.Three)).fetch()
         .should(
-          not be ('empty)
+          not be empty
         )
     }
   }

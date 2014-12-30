@@ -1,7 +1,7 @@
 package sorm.test.features
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -10,7 +10,7 @@ import samples._
 import sorm.{Entity, Instance}
 
 @RunWith(classOf[JUnitRunner])
-class SormValidationSuite extends FunSuite with ShouldMatchers {
+class SormValidationSuite extends FunSuite with Matchers {
   import SormValidationSuite._
 
   test("Mutually recursive types are not supported"){

@@ -1,7 +1,7 @@
 package sorm.test.features
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -10,7 +10,7 @@ import sext._, embrace._
 import sorm.test.MultiInstanceSuite
 
 @RunWith(classOf[JUnitRunner])
-class OrderBySuite extends FunSuite with ShouldMatchers with MultiInstanceSuite {
+class OrderBySuite extends FunSuite with Matchers with MultiInstanceSuite {
   import OrderBySuite._
   
   def entities = Set(Entity[A]())

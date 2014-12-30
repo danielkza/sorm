@@ -1,7 +1,7 @@
 package sorm.test.types
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -9,7 +9,7 @@ import sorm._
 import sorm.test.MultiInstanceSuite
 
 @RunWith(classOf[JUnitRunner])
-class SeqOfEntitiesSupportSuite extends FunSuite with ShouldMatchers with MultiInstanceSuite {
+class SeqOfEntitiesSupportSuite extends FunSuite with Matchers with MultiInstanceSuite {
   import SeqOfEntitiesSupportSuite._
 
   def entities =  Set() + Entity[A]() + Entity[B]()
@@ -26,14 +26,14 @@ class SeqOfEntitiesSupportSuite extends FunSuite with ShouldMatchers with MultiI
     val a4 = db.save(A( Seq(b4) ))
 
     test(dbId + " - Non matching equals query") {
-      db.query[A].whereEqual("a", Seq(b5)).fetch() should be ('empty)
-      db.query[A].whereEqual("a", Seq(b1, b2, b4)).fetch() should be ('empty)
+      db.query[A].whereEqual("a", Seq(b5)).fetch() shouldBe empty
+      db.query[A].whereEqual("a", Seq(b1, b2, b4)).fetch() shouldBe empty
     }
     test(dbId + " - Partially matching equals query") {
-      db.query[A].whereEqual("a", Seq(b2)).fetch() should be ('empty)
-      db.query[A].whereEqual("a", Seq(b1, b2)).fetch() should be ('empty)
-      db.query[A].whereEqual("a", Seq(b3)).fetch() should be ('empty)
-      db.query[A].whereEqual("a", Seq(b2, b3)).fetch() should be ('empty)
+      db.query[A].whereEqual("a", Seq(b2)).fetch() shouldBe empty
+      db.query[A].whereEqual("a", Seq(b1, b2)).fetch() shouldBe empty
+      db.query[A].whereEqual("a", Seq(b3)).fetch() shouldBe empty
+      db.query[A].whereEqual("a", Seq(b2, b3)).fetch() shouldBe empty
     }
     test(dbId + " - Empty seq equals query") {
       db.query[A].whereEqual("a", Seq()).fetch().toSet should be (Set(a1, a3))
@@ -43,8 +43,8 @@ class SeqOfEntitiesSupportSuite extends FunSuite with ShouldMatchers with MultiI
       db.query[A].whereEqual("a", Seq(b4)).fetch() should (contain(a4) and have length(1))
     }
     test(dbId + " - Differently ordered seq") {
-      db.query[A].whereEqual("a", Seq(b1, b3, b2)).fetch() should be ('empty)
-      db.query[A].whereEqual("a", Seq(b2, b3, b1)).fetch() should be ('empty)
+      db.query[A].whereEqual("a", Seq(b1, b3, b2)).fetch() shouldBe empty
+      db.query[A].whereEqual("a", Seq(b2, b3, b1)).fetch() shouldBe empty
     }
     test(dbId + " - Equal on empty seq does not include non empty seqs") {
       db.query[A].whereEqual("a", Seq()).fetch()

@@ -1,7 +1,7 @@
 package sorm.test.types
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -10,7 +10,7 @@ import sext._, embrace._
 import sorm.test.MultiInstanceSuite
 
 @RunWith(classOf[JUnitRunner])
-class OptionEntitySeqItemSupportSuite extends FunSuite with ShouldMatchers with MultiInstanceSuite {
+class OptionEntitySeqItemSupportSuite extends FunSuite with Matchers with MultiInstanceSuite {
 
   import OptionEntitySeqItemSupportSuite._
 

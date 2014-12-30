@@ -1,7 +1,7 @@
 package sorm.test.features
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -14,7 +14,7 @@ object MultiConnectionSupportSuite {
   case class A ( a : Int )
 }
 @RunWith(classOf[JUnitRunner])
-class MultiConnectionSupportSuite extends FunSuite with ShouldMatchers with MultiInstanceSuite {
+class MultiConnectionSupportSuite extends FunSuite with Matchers with MultiInstanceSuite {
   import MultiConnectionSupportSuite._
 
   override def entities = Entity[A]() :: Nil
@@ -23,7 +23,7 @@ class MultiConnectionSupportSuite extends FunSuite with ShouldMatchers with Mult
     test(dbId + " - Entities aren't always stored sequentially"){
       val fs = (1 to 200).map(n => future(db.save(A(n))))
       val rs = fs.map(Await.result(_, 10 seconds)).sortBy(_.id)
-      rs should not be ('empty)
+      rs should not be empty
       rs.map(_.id) should not equal (rs.map(_.a.toLong))
     }
   }

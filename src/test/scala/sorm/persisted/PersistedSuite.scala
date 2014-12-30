@@ -1,14 +1,14 @@
 package sorm.persisted
 
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import sorm.persisted.PersistedSuite._
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 import sorm._
 
 @RunWith(classOf[JUnitRunner])
-class PersistedSuite extends FunSuite with ShouldMatchers {
+class PersistedSuite extends FunSuite with Matchers {
 
   test("Different persisted ids make otherwise equaling objects have different hashcodes") {
     Persisted(Genre("a"), 1).hashCode should not equal(Persisted(Genre("a"), 2).hashCode)
