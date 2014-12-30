@@ -1,11 +1,9 @@
 package sorm.jdbc
 
-import com.typesafe.scalalogging.slf4j.Logging
 import java.sql.ResultSet
 
 class JdbcConnectionSimulator
   extends JdbcConnection(null)
-  with Logging
   {
     override def executeQuery
       [ T ]

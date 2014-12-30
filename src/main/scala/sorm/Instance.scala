@@ -9,8 +9,8 @@ import jdbc._
 
 import sext._, embrace._
 import reflect.runtime.universe._
-import com.typesafe.scalalogging.slf4j.Logging
-
+import com.typesafe.scalalogging.Logging
+import com.typesafe.scalalogging.slf4j.LazyLogging
 /**
  * The instance of SORM
  * @param entities A list of entity settings describing the entities to be
@@ -37,6 +37,7 @@ class Instance
     timeout : Int = 30 )
   extends Instance.Initialization(entities, url, user, password, poolSize, initMode, timeout)
   with Instance.Api
+  with LazyLogging
 
 object Instance {
 

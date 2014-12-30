@@ -1,12 +1,11 @@
 package sorm.jdbc
 
 import sext._
-import org.slf4j.LoggerFactory
 import org.joda.time.Period
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
-trait JdbcConnectionLogging {
-  private lazy val logger : org.slf4j.Logger = LoggerFactory getLogger this.getClass()
-  private def logging = logger.isDebugEnabled
+trait JdbcConnectionLogging extends LazyLogging {
+  private def logging = logger.underlying.isDebugEnabled
 
   protected def logStatement (s : Statement) {
     logger.debug(

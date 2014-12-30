@@ -7,9 +7,9 @@ import jdbc._
 import tableSorters._
 
 import sext._, embrace._
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
-object Initialization extends Logging {
+object Initialization extends LazyLogging {
 
   def validateMapping ( mappings : Stream[EntityMapping] ) : Stream[String]
     = mappings

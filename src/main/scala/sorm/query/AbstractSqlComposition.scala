@@ -1,6 +1,7 @@
 package sorm.query
 
 import sext._, embrace._
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
 import sorm.mappings._
 import sorm.persisted._
@@ -8,9 +9,8 @@ import sorm.persisted._
 import sorm.abstractSql.{AbstractSql => AS}
 import sorm.abstractSql.Combinators._
 import Query._
-import com.typesafe.scalalogging.slf4j.Logging
 
-object AbstractSqlComposition extends Logging {
+object AbstractSqlComposition extends LazyLogging {
 
   def primaryKeySelect
     ( query : Query )

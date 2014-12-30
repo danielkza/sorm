@@ -4,9 +4,9 @@ import sorm._
 import reflection._
 
 import sext._, embrace._
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
-object PersistedClass extends Logging {
+object PersistedClass extends LazyLogging {
 
   import reflect.runtime.universe._
   import scala.tools.reflect.ToolBox

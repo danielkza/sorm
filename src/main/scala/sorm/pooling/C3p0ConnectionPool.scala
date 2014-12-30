@@ -6,8 +6,11 @@ import com.mchange.v2.c3p0.ComboPooledDataSource
 import sorm.core.DbType
 import sorm.jdbc.JdbcConnection
 
-class C3p0ConnectionPool (dbType: DbType, url: String, user: String, password: String, size: Int, timeout: Int) extends ConnectionPool {
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
+class C3p0ConnectionPool (dbType: DbType, url: String, user: String, password: String, size: Int, timeout: Int)
+  extends ConnectionPool with LazyLogging
+{
   private val ds = new ComboPooledDataSource()
   ds.setDriverClass(dbType $ DbType.driverClass)
   ds.setJdbcUrl(url)
