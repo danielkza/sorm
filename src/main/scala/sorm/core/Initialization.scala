@@ -29,12 +29,14 @@ object Initialization extends LazyLogging {
       def validateEntity ( e : Entity ) : Stream[String]
         = {
           lazy val descendats
-            = e.reflection.properties.values
+            = properties(e.reflection).values
                 .unfold( a => a.notEmpty.map(a => a -> a.flatMap(_.generics)) )
                 .flatten
 
+          def properties(r: Reflection) = r.primaryConstructorArguments.toMap
+
           def containsId
-            = e.reflection.properties.keys.exists(_ == "id").option("Property name `id` is not allowed")
+            = properties(e.reflection).keys.exists(_ == "id").option("Property name `id` is not allowed")
 
           def generalTypes
             = descendats
@@ -56,7 +58,7 @@ object Initialization extends LazyLogging {
           def inexistentPropertiesInKeys
             = ( e.indexed.toStream ++ e.unique )
                 .flatten
-                .filterNot(e.reflection.properties.contains)
+                .filterNot(properties(e.reflection).contains)
                 .map("Inexistent property: `" + _ + "`")
 
           def notDistinctPropertiesInKeys
@@ -72,7 +74,7 @@ object Initialization extends LazyLogging {
                   else if( seen.exists( _ =:= r ) )
                     None
                   else {
-                    val types = r.properties.values.toStream ++ r.generics
+                    val types = properties(r).values.toStream ++ r.generics
                     val seen1 = r +: seen
                     types.flatMap(t => checkType(t, seen1)).headOption
                 }
