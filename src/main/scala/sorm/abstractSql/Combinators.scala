@@ -101,6 +101,8 @@ object Combinators {
           )
         case (m : EntityMapping, v : Persisted) =>
           equaling(m.id, v.id)
+        case (m : EntityMapping, v) if v == null =>
+          equaling(m.id, null)
         case (m : RangeMapping, v : Range ) =>
           equaling(m.start, v.start) & equaling(m.end, v.end)
         case (m : TupleMapping, v : Product ) =>
@@ -109,6 +111,8 @@ object Combinators {
             .reduce{_ & _}
         case (m : OptionToNullableMapping, v : Option[_] ) =>
           equaling(m.item, v.orNull)
+        case (m : OptionToNullableMapping, v : Any ) =>
+          equaling(m.item, v)
         case (m : OptionToTableMapping, None ) =>
           havingCount( m, 0 ) &&!
           havingNotEmptyContainer(m)
@@ -173,6 +177,8 @@ object Combinators {
           )
         case (m : EntityMapping, v : Persisted) =>
           notEqualing(m.id, v.id)
+        case (m : EntityMapping, v) if v == null =>
+          notEqualing(m.id, null)
         case (m : RangeMapping, v : Range ) =>
           notEqualing(m.start, v.start) | notEqualing(m.end, v.end)
         case (m : TupleMapping, v : Product ) =>
@@ -181,6 +187,8 @@ object Combinators {
             .reduce{_ | _}
         case (m : OptionToNullableMapping, v : Option[_] ) =>
           notEqualing(m.item, v.orNull)
+        case (m : OptionToNullableMapping, v : Any ) =>
+          notEqualing(m.item, v)
         case (m : OptionToTableMapping, None ) =>
           havingCount(m, 1)
         case (m : OptionToTableMapping, Some(v) ) =>
