@@ -8,7 +8,9 @@ import mappings._
 import jdbc._
 
 import sext._, embrace._
-import reflect.runtime.universe._
+import scala.concurrent.{Await, future, Future}
+import scala.concurrent.duration.Duration
+import scala.reflect.runtime.universe._
 import com.typesafe.scalalogging.Logging
 import com.typesafe.scalalogging.slf4j.LazyLogging
 /**
@@ -40,9 +42,6 @@ class Instance
   with LazyLogging
 
 object Instance {
-
-  import org.joda.time.DateTime
-
   trait Api extends Logging {
 
     protected val connector : Connector
@@ -52,14 +51,11 @@ object Instance {
     private def mapping
       [ T : TypeTag ]
       = {
-        def mapping( r : Reflection )
-          = mappings.get(r)
-              .getOrElse {
-                throw new SormException(
-                  "Entity `" + r.name + "` is not registered"
-                )
-              }
-        mapping(Reflection[T].mixinBasis)
+        val r = Reflection(typeTag[T])
+        mappings.find { case (mr, _) => mr =:= r }.map { _._2 }.getOrElse {
+          throw new SormException(
+            "Entity `" + r.name + "` is not registered")
+        }
       }
 
     /**
@@ -237,7 +233,12 @@ object Instance {
     initializeSchema(mappings.values, connector, initMode)
 
     // Precache persisted classes (required for multithreading)
-    entities.foreach(_.reflection $ PersistedClass.apply)
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    val f = Future.sequence(entities.map { e =>
+      future { PersistedClass(e.reflection): Unit }
+    })
+    Await.result(f, Duration.Inf)
 
   }
   class ValidationException ( m : String ) extends SormException(m)
