@@ -12,7 +12,7 @@ object `package` {
     ( any : T )
     {
       def reflected
-        = new Reflected( any, Reflection( typeTag[T] ) )
+        = new Reflected( any, Reflection[T] )
     }
 
   implicit class ClassAdapter

@@ -3,6 +3,9 @@ package sorm.persisted
 import sorm._
 import reflection._
 
+import java.util.function.{Function => JavaFunction}
+import java.util.concurrent.{ConcurrentMap, ConcurrentHashMap}
+import scala.collection.mutable
 import sext._, embrace._
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
@@ -12,7 +15,7 @@ object PersistedClass extends LazyLogging {
   import scala.tools.reflect.ToolBox
 
   private var generateNameCounter = 0
-  private def generateName() 
+  private def generateName()
     = synchronized {
         generateNameCounter += 1
         "PersistedAnonymous" + generateNameCounter
@@ -23,19 +26,19 @@ object PersistedClass extends LazyLogging {
       name : String )
     : String
     = {
-      val sourceArgs : List[(String, Reflection)]
+      val sourceArgs : Seq[(String, Reflection)]
         = r.primaryConstructorArguments
 
       val sourceArgSignatures
         = sourceArgs.view
             .map{ case (n, r) => n + " : " + r.signature }
-            .toList
+            .toSeq
 
       val newArgSignatures : Seq[String]
         = "val id : Long" +: sourceArgSignatures
 
       val copyMethodArgSignatures
-        = sourceArgs.map{ case (n, r) => 
+        = sourceArgs.map{ case (n, r) =>
             n + " : " + r.signature + " = " + n
           }
 
@@ -48,29 +51,29 @@ object PersistedClass extends LazyLogging {
 
       "class " + name + "\n" +
       ( "( " + newArgSignatures.mkString(",\n").indent(2).trim + " )\n" +
-        "extends " + r.signature + "( " + 
-        sourceArgs.map{_._1}.mkString(", ") + 
+        "extends " + r.signature + "( " +
+        sourceArgs.map{_._1}.mkString(", ") +
         " )\n" +
-        "with " + Reflection[Persisted].signature + "\n" + 
+        "with " + Reflection[Persisted].signature + "\n" +
         "{\n" +
         (
           "type T = " + r.signature + "\n" +
           "override def mixoutPersisted[ T ]\n" +
           ( "= ( id, new " + r.signature + "(" + oldArgNames.mkString(", ") + ").asInstanceOf[T] )" ).indent(2) + "\n" +
           "override def copy\n" +
-          ( "( " + 
-            copyMethodArgSignatures.mkString(",\n").indent(2).trim + 
+          ( "( " +
+            copyMethodArgSignatures.mkString(",\n").indent(2).trim +
             " )\n" +
-            "= " + "new " + name + "( " + 
-            newArgNames.mkString(", ") + 
+            "= " + "new " + name + "( " +
+            newArgNames.mkString(", ") +
             " )\n"
           ) .indent(2) + "\n" +
           "override def productElement ( n : Int ) : Any\n" +
-          ( "= " + 
+          ( "= " +
             ( "n match {\n" +
               ( ( for { (n, i) <- newArgNames.view.zipWithIndex }
                   yield "case " + i + " => " + n
-                ) :+ 
+                ) :+
                 "case _ => throw new IndexOutOfBoundsException(n.toString)"
               ).mkString("\n").indent(2) + "\n" +
               "}"
@@ -97,35 +100,30 @@ object PersistedClass extends LazyLogging {
 
   private[persisted] def createClass
     [ T ]
-    ( r : Reflection )
+    ( r : Reflection)
     : Class[T with Persisted]
     = {
-      val mirror = runtimeMirror(Thread.currentThread().getContextClassLoader)
+      val mirror = runtimeMirror(r.loader)
       val toolbox = mirror.mkToolBox()
 
       toolbox.eval(
         toolbox.parse(
           generateCode(r, generateName())
-            .tap{ c => logger.trace("Generating class:\n" + c) }
+            .tap{ c => logger.trace(s"Generating class for loader ${r.loader}:\n" + c) }
         )
       ) .asInstanceOf[Class[T with Persisted]]
     }
 
-  private val classesCache = new {
-    private def currentClassLoader = Thread.currentThread().getContextClassLoader
-    private var cachedClassLoader = currentClassLoader
-    private val map = new collection.mutable.WeakHashMap[Reflection, Class[_ <: Persisted]]
-    def resolve(r: Reflection) = synchronized {
-      val classLoader = currentClassLoader
-      if(classLoader != cachedClassLoader) {
-        logger.debug("Classloader changed, discarding PersistedClass cache")
-        cachedClassLoader = classLoader
-        map.clear()
-      }
-      map.getOrElseUpdate( r, createClass(r) )
+  private val classesCache =
+    mutable.WeakHashMap.empty[ClassLoader, ConcurrentMap[Reflection, Class[_ <: Persisted]]]
+
+  def apply(r : Reflection): Class[_ <: Persisted] = {
+    val loaderCache = classesCache.synchronized {
+      classesCache.getOrElseUpdate(r.loader, new ConcurrentHashMap)
     }
+
+    loaderCache.computeIfAbsent(r, new JavaFunction[Reflection, Class[_ <: Persisted]] {
+      override def apply(r: Reflection) = createClass(r.mixinBasis)
+    })
   }
-
-  def apply ( r : Reflection ) = classesCache.resolve(r.mixinBasis)
-
 }

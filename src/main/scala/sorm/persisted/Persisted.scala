@@ -28,8 +28,11 @@ object Persisted {
     ( reflected : Reflected,
       id : Long )
     : T with Persisted
-    = apply( reflected.propertyValues, id, reflected.reflection)
+    = {
+      val loader = reflected.instance.getClass.getClassLoader
+      apply( reflected.propertyValues, id, reflected.reflection.withLoader(loader))
         .asInstanceOf[T with Persisted]
+    }
 
   def apply
     [ T : TypeTag ]
@@ -42,11 +45,11 @@ object Persisted {
   def apply
     ( args : Map[String, Any],
       id : Long,
-      r : Reflection )
+      r : Reflection)
     : Persisted
-    = PersistedClass(r)
-        .instantiate(
-          id +: r.primaryConstructorArguments.toStream.unzip._1.map{args}
-        )
-
+    = {
+      PersistedClass(r).instantiate(
+        id +: r.primaryConstructorArguments.toStream.unzip._1.map { args }
+      )
+    }
 }

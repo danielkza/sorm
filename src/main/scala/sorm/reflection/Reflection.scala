@@ -1,20 +1,36 @@
 package sorm.reflection
 
+import ref.WeakReference
 import reflect.runtime.universe._
-import reflect.runtime.{currentMirror => mirror}
-import sext._, embrace._
-import ScalaApi._
+
+import sext._
 import util.hashing.MurmurHash3
-import collection.immutable.ListMap
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
-class Reflection ( protected val t : Type ) {
+import ScalaApi._
 
-  protected def s : Symbol = t.s
+class Reflection (
+    protected[Reflection] val t : Type,
+    val loader : ClassLoader
+) {
+  protected def sym : Symbol = t.s
 
-  override def toString = t.toString
+  private val classLoaderRef = WeakReference(loader)
+  private[Reflection] def classLoader = classLoaderRef.get.get
+  private def mirror = runtimeMirror(classLoader)
+
+  override def toString = {
+    def typeName(t : Type) : String = t match {
+      case tr: TypeRef if tr.args.nonEmpty =>
+        val generics = tr.args.map(typeName).mkString(",")
+        s"$tr[$generics]"
+      case tt => tt.toString
+    }
+    s"Reflection[${typeName(t)}](${classLoader.toString})"
+  }
 
   override def hashCode
-    = MurmurHash3.finalizeHash(t.typeSymbol.hashCode, generics.hashCode)
+    = MurmurHash3.finalizeHash(t.typeSymbol.hashCode, generics.hashCode())
 
   override def equals ( other : Any )
     = other match {
@@ -28,18 +44,18 @@ class Reflection ( protected val t : Type ) {
   def =:= ( other : Reflection ) = t =:= other.t
 
   def properties
-    = t.properties
-        .map{ s => s.decodedName -> Reflection(s.t) }
+    = t.properties.view
+        .map{ s => s.decodedName -> Reflection(s.t, classLoader) }
         .toMap
   def generics
     = t match {
-        case t : TypeRef => t.args.view.map{ Reflection(_) }.toIndexedSeq
+        case t : TypeRef => t.args.view.map{ Reflection(_, classLoader) }.toIndexedSeq
         case _ => Vector()
       }
   def name
-    = s.decodedName
+    = sym.decodedName
   def fullName
-    = s.ancestors.foldRight(""){ (s, text) =>
+    = sym.ancestors.foldRight(""){ (s, text) =>
         if( text == "" ) s.decodedName
         else if( s.owner.isClass ) text + "#" + s.decodedName
         else text + "." + s.decodedName
@@ -54,13 +70,13 @@ class Reflection ( protected val t : Type ) {
         .view
         .zipBy{ _.paramss.view.flatten.map{_.decodedName} }
         .find{ _._2.toSet == params.keySet }
-        .map{ case (c, ps) => s.instantiate( c, ps.map{params} ) }
+        .map{ case (c, ps) => sym.instantiate( c, ps.map{params} ) }
         .get
 
   def instantiate
     ( params : Seq[Any] )
     : Any
-    = s.instantiate(t.constructors.head, params)
+    = sym.instantiate(t.constructors.head, params)
 
   def propertyValue
     ( name : String,
@@ -74,16 +90,16 @@ class Reflection ( protected val t : Type ) {
     = properties.keys.view.zipBy{ propertyValue(_, instance) }.toMap
 
   def primaryConstructorArguments
-    : List[(String, Reflection)]
-    = t.constructors.head.paramss.flatten
-        .map{ s => s.decodedName -> Reflection(s.t) }
+    : Seq[(String, Reflection)]
+    = t.constructors.head.paramss.flatten.view
+        .map{ s => s.decodedName -> Reflection(s.t, classLoader) }
 
   /**
    * Either the type itself if it's not mixed in or the first of its parents
    */
   def mixinBasis
     = t match {
-        case t : RefinedType => Reflection(t.parents.head)
+        case t : RefinedType => Reflection(t.parents.head, classLoader)
         case _ => this
       }
 
@@ -105,15 +121,23 @@ class Reflection ( protected val t : Type ) {
       }
 
   def isCaseClass
-    = s match {
+    = sym match {
         case s : ClassSymbol => s.isCaseClass
         case _ => false
       }
 
-  def javaClass = t.javaClass
-}
-object Reflection {
-  def apply[ A : TypeTag ]  : Reflection = Reflection(typeOf[A])
-  def apply( t : Type )     : Reflection = new Reflection(t)
+  def javaClass = mirror.runtimeClass(t)
 
+  def withLoader(loader: ClassLoader) = Reflection(t, loader)
+}
+
+object Reflection extends LazyLogging {
+  def apply( t : Type, l : ClassLoader) : Reflection =
+    new Reflection(t, l)
+  def apply[ A : TypeTag ](l : ClassLoader) : Reflection =
+    Reflection(typeOf[A], l)
+  def apply( t : Type) : Reflection =
+    Reflection(t, Thread.currentThread().getContextClassLoader)
+  def apply[ A : TypeTag ] : Reflection =
+    Reflection(typeOf[A])
 }
