@@ -103,13 +103,13 @@ object PersistedClass extends LazyLogging {
     ( r : Reflection)
     : Class[T with Persisted]
     = {
-      val mirror = runtimeMirror(r.classLoader)
+      val mirror = runtimeMirror(r.loader)
       val toolbox = mirror.mkToolBox()
 
       toolbox.eval(
         toolbox.parse(
           generateCode(r, generateName())
-            .tap{ c => logger.trace(s"Generating class for loader ${r.classLoader}:\n" + c) }
+            .tap{ c => logger.trace(s"Generating class for loader ${r.loader}:\n" + c) }
         )
       ) .asInstanceOf[Class[T with Persisted]]
     }
@@ -119,7 +119,7 @@ object PersistedClass extends LazyLogging {
 
   def apply(r : Reflection): Class[_ <: Persisted] = {
     val loaderCache = classesCache.synchronized {
-      classesCache.getOrElseUpdate(r.classLoader, new ConcurrentHashMap)
+      classesCache.getOrElseUpdate(r.loader, new ConcurrentHashMap)
     }
 
     loaderCache.computeIfAbsent(r, new JavaFunction[Reflection, Class[_ <: Persisted]] {
