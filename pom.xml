@@ -6,7 +6,7 @@
 
   <groupId>org.sorm-framework</groupId>
   <artifactId>sorm</artifactId>
-  <version>0.3.15-13</version>
+  <version>0.3.15-14</version>
   <packaging>jar</packaging>
 
   <name>SORM</name>
@@ -44,7 +44,7 @@
     <dependency>
       <groupId>com.mchange</groupId>
       <artifactId>c3p0</artifactId>
-      <version>0.9.5-pre10</version>
+      <version>0.9.5</version>
     </dependency>
     <dependency>
       <groupId>com.github.nikita-volkov</groupId>
