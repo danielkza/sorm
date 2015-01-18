@@ -22,5 +22,4 @@ trait JdbcConnectionLogging extends LazyLogging {
       f
     }
   }
-
 }

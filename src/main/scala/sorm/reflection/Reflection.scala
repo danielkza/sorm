@@ -11,12 +11,12 @@ import ScalaApi._
 
 class Reflection (
     protected[Reflection] val t : Type,
-    val loader : ClassLoader
+    loader : ClassLoader
 ) {
   protected def sym : Symbol = t.s
 
   private val classLoaderRef = WeakReference(loader)
-  private[Reflection] def classLoader = classLoaderRef.get.get
+  def classLoader = classLoaderRef.get.get
   private def mirror = runtimeMirror(classLoader)
 
   override def toString = {
